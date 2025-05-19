@@ -1,0 +1,83 @@
+# notebooks/credit_risk_analysis.ipynb
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load data
+df = pd.read_csv("../data/loan_data.csv")
+
+# Check missing values
+print(df.isnull().sum())
+
+# Plot risk distribution
+sns.countplot(x='loan_status', data=df)
+plt.title("Class Distribution (0=Low Risk, 1=High Risk)")
+plt.show()
+
+# Feature engineering
+df['debt_to_income_ratio'] = df['debt'] / df['income']
+
+
+
+# scripts/train_model.py
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
+import joblib
+
+# Load data
+df = pd.read_csv("../data/loan_data.csv")
+X = df.drop('loan_status', axis=1)
+y = df['loan_status']
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# Train model
+model = RandomForestClassifier()
+model.fit(X_train, y_train)
+
+# Evaluate
+y_pred = model.predict(X_test)
+print(classification_report(y_test, y_pred))
+
+# Save model
+joblib.dump(model, "../models/risk_model.pkl")
+
+
+
+# scripts/predict_risk.py
+import joblib
+import pandas as pd
+
+# Load model
+model = joblib.load("../models/risk_model.pkl")
+
+# Example input (replace with user input)
+new_applicant = {
+    'credit_score': 700,
+    'income': 50000,
+    'loan_amount': 10000,
+    'debt_to_income_ratio': 0.3,
+    'employment_length': 5
+}
+
+# Predict
+risk = model.predict(pd.DataFrame([new_applicant]))[0]
+print("Low Risk" if risk == 0 else "High Risk")
+
+
+
+Install dependencies:
+
+bash
+pip install -r requirements.txt
+Train the model:
+
+bash
+python scripts/train_model.py
+Predict risk for a new applicant:
+
+bash
+python scripts/predict_risk.py
